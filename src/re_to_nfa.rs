@@ -3,12 +3,26 @@ use crate::regular_expression::RegularExpression::*;
 use petgraph::graph::Graph;
 use petgraph::graph::NodeIndex;
 use std::fmt;
-#[derive(Debug)]
+
 pub enum State {
     Start,
     Standard,
     End(&'static str),
 }
+
+impl fmt::Debug for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            State::Start => f.write_fmt(format_args!("Start")),
+            State::Standard => f.write_fmt(format_args!("")),
+            State::End(s) => f.write_fmt(format_args!("End({})",s))
+        }
+
+
+
+    }
+}
+
 pub enum BranchLabel{
     Letter(char),
     Empty
@@ -32,6 +46,7 @@ pub fn converter(expression: RegularExpression) -> Graph<State, BranchLabel>{
     let mut graph = Graph::<State, BranchLabel>::new();
     let start = graph.add_node(State::Start);
     let end = generate(&mut graph,start, expression);
+    *(graph.node_weight_mut(end).unwrap())=State::End("Hello");
     return graph;
 }
 
