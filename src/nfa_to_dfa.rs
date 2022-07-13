@@ -59,7 +59,6 @@ pub fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, BranchLabel> {
                     }
                 }
                 sets.push(set.clone());
-                println!("{:?}", set);
                 queue.push_back(set);
 
                 let node = dfa.add_node(state);

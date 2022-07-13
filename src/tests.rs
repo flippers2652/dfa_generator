@@ -44,5 +44,19 @@ fn nfa_to_dfa() {
     let re = re.concatenate(&mid).concatenate(&Character('c'));
     println!("{}",re);
     let nfa = converter(re);
+    println!("{:?}", Dot::with_config(&nfa, &[]));
     println!("{:?}", Dot::with_config(&dfa(nfa), &[]));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
