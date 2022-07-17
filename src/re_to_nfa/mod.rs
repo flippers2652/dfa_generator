@@ -9,7 +9,7 @@ use crate::regular_expressions::RegularExpression::*;
 mod tests;
 
 #[derive(PartialEq)]
-enum State {
+pub(in crate) enum State {
     Start,
     Standard,
     End(&'static str),
@@ -25,7 +25,7 @@ impl fmt::Debug for State {
     }
 }
 #[derive(PartialEq, Hash, Eq, Copy, Clone)]
-enum BranchLabel {
+pub(in crate) enum BranchLabel {
     Letter(char),
     Empty,
 }
@@ -39,7 +39,7 @@ impl fmt::Debug for BranchLabel {
     }
 }
 
-fn converter(expression: RegularExpression) -> Graph<State, BranchLabel> {
+pub(in crate) fn converter(expression: RegularExpression) -> Graph<State, BranchLabel> {
     let mut graph = Graph::<State, BranchLabel>::new();
     let start = graph.add_node(State::Start);
     let end = generate(&mut graph, start, expression);
