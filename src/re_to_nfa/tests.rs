@@ -1,5 +1,3 @@
-
-
 #[test]
 fn re_to_nfa() {
     use crate::re_to_nfa::converter;
@@ -13,7 +11,9 @@ fn re_to_nfa() {
     let re = re.alternate(&Empty);
     let re = RegularExpression::literal("c").concatenate(&re);
 
-    assert_eq!(format!("{:?}", Dot::with_config(&converter(re), &[])),"digraph {
+    assert_eq!(
+        format!("{:?}", Dot::with_config(&converter(re), &[])),
+        "digraph {
     0 [ label = \"Start\" ]
     1 [ label = \"\" ]
     2 [ label = \"End(Hello)\" ]
@@ -33,5 +33,6 @@ fn re_to_nfa() {
     1 -> 7 [ label = \"ε\" ]
     7 -> 2 [ label = \"ε\" ]
 }
-");
+"
+    );
 }

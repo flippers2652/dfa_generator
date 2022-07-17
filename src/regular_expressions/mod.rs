@@ -2,7 +2,6 @@ mod tests;
 
 use std::fmt;
 
-
 #[derive(Clone, Debug)]
 pub enum RegularExpression {
     Character(char),

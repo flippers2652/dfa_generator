@@ -16,7 +16,10 @@ fn regular_expressions_general() {
 #[test]
 fn literal() {
     use crate::regular_expressions::RegularExpression;
-    assert_eq!(format!("{}", RegularExpression::literal("Hello World")), "Hello World");
+    assert_eq!(
+        format!("{}", RegularExpression::literal("Hello World")),
+        "Hello World"
+    );
 }
 
 #[test]
@@ -24,13 +27,3 @@ fn empty() {
     use crate::regular_expressions::RegularExpression;
     assert_eq!(format!("{}", RegularExpression::literal("")), "ε");
 }
-
-
-
-
-
-
-
-
-
-
