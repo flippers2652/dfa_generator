@@ -1,9 +1,11 @@
 #[cfg(test)]
 #[test]
-fn nfa_to_dfa() {
+fn dfa_to_table() {
+    use crate::dfa_to_table::convert;
     use crate::nfa_to_dfa::converter as dfa;
-    use crate::re_to_nfa::converter;
+    use crate::re_to_nfa::converter as nfa;
     use crate::regular_expressions::RegularExpression::*;
+    use petgraph::dot::Dot;
     let re = Character('a');
     let left = Character('a').alternate(&Character('b')).kleene_star();
     let right = Character('b').alternate(&Character('c')).kleene_star();
@@ -15,7 +17,6 @@ fn nfa_to_dfa() {
         .kleene_star();
     let re = start.concatenate(&re);
 
-    let nfa = converter(re);
-    let _dfa = dfa(nfa);
+    let table = convert(dfa(nfa(re.clone())));
     //Todo
 }

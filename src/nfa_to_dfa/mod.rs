@@ -8,7 +8,7 @@ use crate::re_to_nfa::{BranchLabel, State};
 
 mod tests;
 
-pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, BranchLabel> {
+pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, char> {
     let mut start = None;
     for node in nfa.node_indices() {
         if *(nfa.node_weight(node).unwrap()) == State::Start {
@@ -23,7 +23,7 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, Branc
     let mut queue = VecDeque::new();
     queue.push_back(start_set.clone());
 
-    let mut dfa = Graph::<State, BranchLabel>::new();
+    let mut dfa = Graph::<State, char>::new();
     let start_node = dfa.add_node(State::Start);
     let mut sets = vec![start_set];
     let mut nodes = vec![start_node];
@@ -34,8 +34,8 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, Branc
         let current_node = nodes[node_index];
         for index in &indices {
             for edge in nfa.edges(index.clone()) {
-                if *(edge.weight()) != BranchLabel::Empty {
-                    alphabet.insert(edge.weight());
+                if let BranchLabel::Letter(c) = *(edge.weight()) {
+                    alphabet.insert(c);
                 }
             }
         }
@@ -45,7 +45,7 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, Branc
             for &index in &indices {
                 for neighbor in nfa.neighbors(index.clone()) {
                     for edge in nfa.edges_connecting(index, neighbor) {
-                        if edge.weight() == character {
+                        if *edge.weight() == BranchLabel::Letter(character) {
                             set.insert(neighbor);
                         }
                     }
@@ -55,7 +55,7 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, Branc
             if sets.contains(&set) {
                 let index = sets.iter().position(|x| *x == set).unwrap();
                 let node = nodes[index];
-                let edge = dfa.add_edge(current_node, node, *character);
+                let edge = dfa.add_edge(current_node, node, character);
             } else {
                 let mut state = State::Standard;
                 for &node in &set {
@@ -68,7 +68,7 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, Branc
 
                 let node = dfa.add_node(state);
                 nodes.push(node);
-                let edge = dfa.add_edge(current_node, node, *character);
+                let edge = dfa.add_edge(current_node, node, character);
             }
         }
     }

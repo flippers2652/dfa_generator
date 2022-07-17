@@ -12,7 +12,7 @@ fn re_to_nfa() {
     let re = RegularExpression::literal("c").concatenate(&re);
 
     assert_eq!(
-        format!("{:?}", Dot::with_config(&converter(re), &[])),
+        format!("{}", Dot::with_config(&converter(re), &[])),
         "digraph {
     0 [ label = \"Start\" ]
     1 [ label = \"\" ]

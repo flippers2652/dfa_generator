@@ -8,14 +8,14 @@ use crate::regular_expressions::RegularExpression::*;
 
 mod tests;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub(in crate) enum State {
     Start,
     Standard,
     End(&'static str),
 }
 
-impl fmt::Debug for State {
+impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             State::Start => f.write_fmt(format_args!("Start")),
@@ -24,13 +24,14 @@ impl fmt::Debug for State {
         }
     }
 }
+
 #[derive(PartialEq, Hash, Eq, Copy, Clone)]
 pub(in crate) enum BranchLabel {
     Letter(char),
     Empty,
 }
 
-impl fmt::Debug for BranchLabel {
+impl fmt::Display for BranchLabel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             BranchLabel::Letter(c) => f.write_fmt(format_args!("{}", c)),
