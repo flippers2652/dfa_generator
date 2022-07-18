@@ -1,9 +1,9 @@
 #[cfg(test)]
 #[test]
-fn dfa_to_table() {
-    use crate::dfa_to_table::converter;
+fn nfa_to_dfa() {
+    use crate::dfa_minimiser::minimise;
     use crate::nfa_to_dfa::converter as dfa;
-    use crate::re_to_nfa::converter as nfa;
+    use crate::re_to_nfa::converter;
     use crate::regular_expressions::RegularExpression;
     use crate::regular_expressions::RegularExpression::*;
     use petgraph::dot::Dot;
@@ -17,9 +17,11 @@ fn dfa_to_table() {
         .alternate(&Character('c'))
         .kleene_star();
     let re = start.concatenate(&re);
-    let re = start.concatenate(&re);
     let mut map = Vec::<(&str, RegularExpression)>::new();
-
-    let table = converter(dfa(nfa(&map), &map));
-    //Todo
+    map.push(("", re));
+    let nfa = converter(&map);
+    let dfa = dfa(nfa, &map);
+    //println!("{}", Dot::with_config(&dfa, &[]));
+    //println!("{}", Dot::with_config(&minimise(dfa), &[]));
+    //Todo;
 }

@@ -4,15 +4,15 @@ fn re_to_nfa() {
     use crate::regular_expressions::RegularExpression;
     use crate::regular_expressions::RegularExpression::*;
     use petgraph::dot::Dot;
-
     let re = Character('a');
     let re = re.kleene_star();
     let re = re.alternate(&RegularExpression::literal("b"));
     let re = re.alternate(&Empty);
     let re = RegularExpression::literal("c").concatenate(&re);
-
+    let mut map = Vec::<(&str, RegularExpression)>::new();
+    map.push(("Hello", re));
     assert_eq!(
-        format!("{}", Dot::with_config(&converter(re), &[])),
+        format!("{}", Dot::with_config(&converter(&map), &[])),
         "digraph {
     0 [ label = \"Start\" ]
     1 [ label = \"\" ]

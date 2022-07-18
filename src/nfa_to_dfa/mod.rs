@@ -4,17 +4,22 @@ use std::collections::VecDeque;
 use petgraph::graph::Graph;
 use petgraph::graph::NodeIndex;
 
-use crate::re_to_nfa::{BranchLabel, State};
-
+use crate::re_to_nfa::{BranchLabel, State, TokenRequirements};
+use crate::regular_expressions::RegularExpression;
 mod tests;
 
-pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, char> {
+pub(in crate) fn converter<Token: TokenRequirements>(
+    nfa: Graph<State<Token>, BranchLabel>,
+    tokens: &Vec<(Token, RegularExpression)>,
+) -> Graph<State<Token>, char> {
+    println!("nfa_to_dfa");
     let mut start = None;
     for node in nfa.node_indices() {
         if *(nfa.node_weight(node).unwrap()) == State::Start {
             start = Some(node);
         }
     }
+    println!("closure");
     let start_set = closure(
         &nfa,
         vec![start.unwrap()].into_iter().collect(),
@@ -23,10 +28,11 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, char>
     let mut queue = VecDeque::new();
     queue.push_back(start_set.clone());
 
-    let mut dfa = Graph::<State, char>::new();
+    let mut dfa = Graph::<State<Token>, char>::new();
     let start_node = dfa.add_node(State::Start);
     let mut sets = vec![start_set];
     let mut nodes = vec![start_node];
+    println!("loop");
     while !queue.is_empty() {
         let indices = queue.pop_front().unwrap();
         let mut alphabet = HashSet::new();
@@ -41,6 +47,7 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, char>
         }
 
         for character in alphabet {
+            println!("{}",character);
             let mut set = HashSet::new();
             for &index in &indices {
                 for neighbor in nfa.neighbors(index.clone()) {
@@ -59,8 +66,38 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, char>
             } else {
                 let mut state = State::Standard;
                 for &node in &set {
-                    if let State::End(s) = *nfa.node_weight(node).unwrap() {
-                        state = State::End(s);
+                    if let State::End(current_token) = *nfa.node_weight(node).unwrap() {
+                        /*
+                        if state==State::Standard{
+                            state = State::End(s);
+                        } else {
+                            for &(token,_) in &tokens{
+                                if s==token{
+
+                                }
+                                if let State::End(s)=state
+
+                            }
+                        }*/
+                        match state {
+                            State::Standard => {
+                                state = State::End(current_token);
+                            }
+                            State::Start => {}
+                            State::End(state_token) => {
+                                if state_token != current_token {
+                                    for &(token, _) in tokens {
+                                        if current_token == token {
+                                            state = State::End(current_token);
+                                            break;
+                                        }
+                                        if state_token == token {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 sets.push(set.clone());
@@ -74,8 +111,8 @@ pub(in crate) fn converter(nfa: Graph<State, BranchLabel>) -> Graph<State, char>
     }
     return dfa;
 }
-pub(in crate) fn closure(
-    graph: &Graph<State, BranchLabel>,
+pub(in crate) fn closure<Token: TokenRequirements>(
+    graph: &Graph<State<Token>, BranchLabel>,
     indices: HashSet<NodeIndex>,
     label: BranchLabel,
 ) -> HashSet<NodeIndex> {

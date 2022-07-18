@@ -2,7 +2,7 @@ mod tests;
 
 use std::fmt;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug,PartialEq)]
 pub enum RegularExpression {
     Character(char),
     Alternative(Box<RegularExpression>, Box<RegularExpression>),
@@ -25,6 +25,33 @@ impl RegularExpression {
         }
         return literal;
     }
+    pub fn upper_alpha() -> Self {
+        let mut out=RegularExpression::Empty;
+        for c in b'A'..b'Z'{
+            out=out.alternate(&Self::Character(c as char));
+        }
+        return out;
+    }
+    pub fn lower_alpha() -> Self {
+        let mut out=RegularExpression::Empty;
+        for c in b'a'..b'z'{
+            out=out.alternate(&Self::Character(c as char))
+        }
+        return out;
+    }
+    pub fn alpha() -> Self {
+        return Self::upper_alpha().alternate(&Self::lower_alpha());
+    }
+    pub fn numeric() -> Self {
+        let mut out=RegularExpression::Empty;
+        for c in b'0'..b'9'{
+            out=out.alternate(&Self::Character(c as char))
+        }
+        return out;
+    }
+    pub fn alphanumeric() -> Self {
+        return Self::alpha().alternate(&Self::numeric());
+    }
     fn precedence(&self) -> i32 {
         match self {
             RegularExpression::Character(_) => 5,
@@ -38,6 +65,12 @@ impl RegularExpression {
         return RegularExpression::KleeneStar(Box::new(self.clone()));
     }
     pub fn concatenate(&self, other: &Self) -> Self {
+    if *self==RegularExpression::Empty{
+        return other.clone();
+    }
+    if *other==RegularExpression::Empty{
+        return self.clone();
+    }
         return RegularExpression::Concatenation(Box::new(self.clone()), Box::new(other.clone()));
     }
     pub fn alternate(&self, other: &Self) -> Self {
