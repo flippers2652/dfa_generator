@@ -11,11 +11,10 @@ mod tests;
 pub(in crate) fn minimise<Token: TokenRequirements>(
     dfa: Graph<State<Token>, char>,
 ) -> Graph<State<Token>, char> {
-println!("minimise");
     let mut alphabet = HashMap::<char, usize>::new();
     let mut count = 0;
     for letter in dfa.edge_weights().into_iter().collect::<HashSet<&char>>() {
-        if alphabet.contains_key(&letter) {
+        if alphabet.contains_key(letter) {
             continue;
         }
         alphabet.insert(*letter, count);
@@ -42,7 +41,7 @@ println!("minimise");
                     for edge in dfa.edges_connecting(node, neighbor) {
                         for set in &sets {
                             if set.contains(&neighbor) {
-                                arrows.insert(*dfa.edge_weight(edge.id()).unwrap(), &set);
+                                arrows.insert(*dfa.edge_weight(edge.id()).unwrap(), set);
                                 break;
                             };
                         }
@@ -71,27 +70,28 @@ println!("minimise");
             //println!("{:?}",sets);
         }
     }
+    //let sets: Vec<HashSet<NodeIndex>>=sets.into_iter().filter(|set| !set.is_empty()).collect();
     let mut nodes = vec![];
     let mut minimised_dfa = Graph::<State<Token>, char>::new();
     for set in &sets {
-        for node in set {
+        if let Some(node) = set.iter().next() {
             nodes.push(minimised_dfa.add_node(*dfa.node_weight(*node).unwrap()));
-            break;
         }
     }
+    assert_eq!(sets.len(),nodes.len());
     for set in &sets {
-        for node in set {
+        if let Some(node) = set.iter().next() {
             for neighbor in dfa.neighbors(*node) {
                 for edge in dfa.edges_connecting(*node, neighbor) {
-                    for neighbor_set in &sets {
-                        if neighbor_set.contains(&neighbor) {
-                            minimised_dfa.add_edge(nodes[sets.iter().position(|s| *s==*set).unwrap()],nodes[sets.iter().position(|s| *s==*neighbor_set).unwrap()],*dfa.edge_weight(edge.id()).unwrap());
-
-                        };
+                    for neighbor_set in sets.iter().filter(|set| set.contains(&neighbor)) {
+                        minimised_dfa.add_edge(
+                            nodes[sets.iter().position(|s| *s == *set).unwrap()],
+                            nodes[sets.iter().position(|s| *s == *neighbor_set).unwrap()],
+                            *dfa.edge_weight(edge.id()).expect("edge"),
+                        );
                     }
                 }
             }
-            break;
         }
     }
     return minimised_dfa;

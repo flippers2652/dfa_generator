@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fmt;
 
 use petgraph::graph::Graph;
@@ -10,17 +9,22 @@ use crate::regular_expressions::RegularExpression::*;
 mod tests;
 
 pub trait TokenRequirements:
-    std::cmp::PartialEq + std::fmt::Display + Copy + std::hash::Hash + std::cmp::Eq+std::fmt::Debug
+    std::cmp::PartialEq + std::fmt::Display + Copy + std::hash::Hash + std::cmp::Eq + std::fmt::Debug
 where
     Self: std::marker::Sized,
 {
 }
 impl<T> TokenRequirements for T where
-    T: std::cmp::PartialEq + std::fmt::Display + Copy + std::hash::Hash + std::cmp::Eq+std::fmt::Debug
+    T: std::cmp::PartialEq
+        + std::fmt::Display
+        + Copy
+        + std::hash::Hash
+        + std::cmp::Eq
+        + std::fmt::Debug
 {
 }
 
-#[derive(PartialEq, Debug, Eq, Hash, Copy,Clone)]
+#[derive(PartialEq, Debug, Eq, Hash, Copy, Clone)]
 pub(in crate) enum State<Token: TokenRequirements> {
     Start,
     Standard,
@@ -37,7 +41,7 @@ impl<Token: TokenRequirements> fmt::Display for State<Token> {
     }
 }
 
-#[derive(PartialEq, Hash, Eq, Copy, Clone,Debug)]
+#[derive(PartialEq, Hash, Eq, Copy, Clone, Debug)]
 pub(in crate) enum BranchLabel {
     Letter(char),
     Empty,
@@ -53,9 +57,8 @@ impl fmt::Display for BranchLabel {
 }
 
 pub(in crate) fn converter<Token: TokenRequirements>(
-    tokens: &Vec<(Token, RegularExpression)>,
+    tokens: &Vec<(Token, RegularExpression<char>)>,
 ) -> Graph<State<Token>, BranchLabel> {
-    println!("re_to_dfa");
     let mut graph = Graph::<State<Token>, BranchLabel>::new();
     let start = graph.add_node(State::Start);
     for (token, re) in tokens {
@@ -68,12 +71,12 @@ pub(in crate) fn converter<Token: TokenRequirements>(
 fn generate<Token: TokenRequirements>(
     graph: &mut Graph<State<Token>, BranchLabel>,
     start: NodeIndex<u32>,
-    expression: RegularExpression,
+    expression: RegularExpression<char>,
 ) -> NodeIndex<u32> {
     match expression {
         Character(s) => character(graph, start, s),
-        Concatenation(a, b) => concatenation(graph, start, *a, *b),
-        Alternative(a, b) => alternative(graph, start, *a, *b),
+        Concatenation(vec) => concatenation(graph, start, vec),
+        Alternative(vec) => alternative(graph, start, vec),
         KleeneStar(a) => kleene_star(graph, start, *a),
         Empty => empty(graph, start),
     }
@@ -82,40 +85,40 @@ fn generate<Token: TokenRequirements>(
 fn concatenation<Token: TokenRequirements>(
     graph: &mut Graph<State<Token>, BranchLabel>,
     start: NodeIndex<u32>,
-    a: RegularExpression,
-    b: RegularExpression,
+    vec: Vec<RegularExpression<char>>,
 ) -> NodeIndex<u32> {
-    let mid = generate(graph, start, a);
+    let mut mid = start;
+    for v in vec {
+        mid = generate(graph, mid, v);
+    }
 
-    let end = generate(graph, mid, b);
-    return end;
+    return mid;
 }
 
 fn alternative<Token: TokenRequirements>(
     graph: &mut Graph<State<Token>, BranchLabel>,
     start: NodeIndex<u32>,
-    a: RegularExpression,
-    b: RegularExpression,
+    vec: Vec<RegularExpression<char>>,
 ) -> NodeIndex<u32> {
     let end = graph.add_node(State::Standard);
-    let end_a = generate(graph, start, a);
 
-    let edge = graph.add_edge(end_a, end, BranchLabel::Empty);
-    let end_b = generate(graph, start, b);
-    let edge = graph.add_edge(end_b, end, BranchLabel::Empty);
+    for v in vec {
+        let end_v = generate(graph, start, v);
+        let edge = graph.add_edge(end_v, end, BranchLabel::Empty);
+    }
     return end;
 }
 
 fn kleene_star<Token: TokenRequirements>(
     graph: &mut Graph<State<Token>, BranchLabel>,
     start: NodeIndex<u32>,
-    a: RegularExpression,
+    a: RegularExpression<char>,
 ) -> NodeIndex<u32> {
     let node = graph.add_node(State::Standard);
     let end = generate(graph, node, a);
-    let edge = graph.add_edge(end, node, BranchLabel::Empty);
+    let edge = graph.add_edge(end, start, BranchLabel::Empty);
     let edge = graph.add_edge(start, node, BranchLabel::Empty);
-    return end;
+    return node;
 }
 
 fn character<Token: TokenRequirements>(

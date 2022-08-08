@@ -18,7 +18,7 @@ fn dfa_to_table() {
         .kleene_star();
     let re = start.concatenate(&re);
     let re = start.concatenate(&re);
-    let mut map = Vec::<(&str, RegularExpression)>::new();
+    let mut map = Vec::<(&str, RegularExpression<_>)>::new();
 
     let table = converter(dfa(nfa(&map), &map));
     //Todo

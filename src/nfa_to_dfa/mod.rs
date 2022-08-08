@@ -10,16 +10,14 @@ mod tests;
 
 pub(in crate) fn converter<Token: TokenRequirements>(
     nfa: Graph<State<Token>, BranchLabel>,
-    tokens: &Vec<(Token, RegularExpression)>,
+    tokens: &Vec<(Token, RegularExpression<char>)>,
 ) -> Graph<State<Token>, char> {
-    println!("nfa_to_dfa");
     let mut start = None;
     for node in nfa.node_indices() {
         if *(nfa.node_weight(node).unwrap()) == State::Start {
             start = Some(node);
         }
     }
-    println!("closure");
     let start_set = closure(
         &nfa,
         vec![start.unwrap()].into_iter().collect(),
@@ -32,14 +30,13 @@ pub(in crate) fn converter<Token: TokenRequirements>(
     let start_node = dfa.add_node(State::Start);
     let mut sets = vec![start_set];
     let mut nodes = vec![start_node];
-    println!("loop");
     while !queue.is_empty() {
         let indices = queue.pop_front().unwrap();
         let mut alphabet = HashSet::new();
         let node_index = sets.iter().position(|x| *x == indices).unwrap();
         let current_node = nodes[node_index];
         for index in &indices {
-            for edge in nfa.edges(index.clone()) {
+            for edge in nfa.edges(*index) {
                 if let BranchLabel::Letter(c) = *(edge.weight()) {
                     alphabet.insert(c);
                 }
@@ -47,10 +44,9 @@ pub(in crate) fn converter<Token: TokenRequirements>(
         }
 
         for character in alphabet {
-            println!("{}",character);
             let mut set = HashSet::new();
             for &index in &indices {
-                for neighbor in nfa.neighbors(index.clone()) {
+                for neighbor in nfa.neighbors(index) {
                     for edge in nfa.edges_connecting(index, neighbor) {
                         if *edge.weight() == BranchLabel::Letter(character) {
                             set.insert(neighbor);
@@ -128,7 +124,7 @@ pub(in crate) fn closure<Token: TokenRequirements>(
         for &index in &indices {
             for node in graph.neighbors(index) {
                 for edge in graph.edges_connecting(index, node) {
-                    if *edge.weight() == label {
+                    if *edge.weight() == label && !set.contains(&node) {
                         set.insert(node);
                         next_indices.insert(node);
                         break;

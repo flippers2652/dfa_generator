@@ -17,7 +17,7 @@ pub(in crate) fn converter<Token: TokenRequirements>(
     let mut count = 0;
     for edge in dfa.edge_indices() {
         let letter = dfa.edge_weight(edge).unwrap();
-        if alphabet.contains_key(&letter) {
+        if alphabet.contains_key(letter) {
             continue;
         }
         alphabet.insert(*letter, count);
@@ -44,7 +44,7 @@ pub(in crate) fn converter<Token: TokenRequirements>(
     for node in dfa.node_indices() {
         for neighbor in dfa.neighbors(node) {
             let edges = dfa.edges_connecting(node, neighbor);
-            for edge in edges.into_iter() {
+            for edge in edges {
                 let weight = dfa.edge_weight(edge.id()).unwrap();
                 table[nodes[&node]][alphabet[weight]] = nodes[&neighbor];
             }

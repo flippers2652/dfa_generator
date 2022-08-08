@@ -16,7 +16,7 @@ fn nfa_to_dfa() {
         .alternate(&Character('c'))
         .kleene_star();
     let re = start.concatenate(&re);
-    let mut map = Vec::<(&str, RegularExpression)>::new();
+    let mut map = Vec::<(&str, RegularExpression<_>)>::new();
     map.push(("", re));
     let nfa = converter(&map);
     let dfa = dfa(nfa, &map);

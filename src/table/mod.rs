@@ -1,11 +1,12 @@
 use crate::re_to_nfa::TokenRequirements;
 use std::collections::HashMap;
-#[derive(Copy, PartialEq, Clone)]
+#[derive(Copy, PartialEq, Clone, Debug)]
 pub enum State<Token: TokenRequirements> {
     Standard,
     Token(Token),
     Error,
 }
+#[derive(PartialEq, Clone, Debug)]
 pub struct Table<Token: TokenRequirements> {
     pub start_id: usize,
     pub table: Vec<Vec<usize>>,
